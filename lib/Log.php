@@ -38,6 +38,15 @@
             $result = $this -> fetchArray();
             return $result;
         }
+
+        //--デバイステーブルから検索
+        public function searchFrom($deviceID){
+            $query = "SELECT * FROM deviceTable WHERE deviceID=?";
+            $paramarray = array($deviceID);
+            $this -> queryExec($query, $paramarray);
+            $result = $this -> fetchArray();
+            return count($result) == 1;
+        }
         
         // $data = $obj -> getValue("", "esp02", 10);
         // foreach ($data as $cell) {

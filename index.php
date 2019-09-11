@@ -7,23 +7,31 @@
     require "lib/DBAccess.php"; //DB接続
     require "lib/Log.php"; //ログ操作
 
+    $logger = new Log("db/log.db");
+
     //--サニタイズ
-    $post=array();
+    $post = array();
     foreach( $_POST as $key => $value ) {
         $post[$key] = htmlspecialchars( $value, ENT_QUOTES);
     }
 
-    //--必要なデータがPOSTされていなければexit
+    //--必要なデータがPOSTされていなければエラー
     if(!isset($post['deviceID'], $post['temp'], $post['humid'])){
-        print "Error. required data has not been POST.\r\n";
+        header('HTTP', true, 400);
+        exit;
+    }
+
+    //--デバイスIDをデバイステーブルから検索し、正規リクエストか判定
+    $auth = $logger -> searchFrom($post['deviceID']);
+    if(!$auth){
+        header('HTTP', true, 400);
         exit;
     }
 
     //--ログに追加
     $postTime = time();
-    $logger = new Log("db/log.db");
     $logger -> addValue($post['deviceID'], $postTime, (float)$post['temp'], (float)$post['humid']);
 
-    //--一応まともなレスポンスを返してあげないとね
     print "Data Added as " . $post['deviceID'] ."\r\n when " . date("Y/m/d H:i:s", $postTime) . ".\r\n";
+    exit;
 ?>

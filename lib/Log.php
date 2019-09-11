@@ -6,15 +6,15 @@
     //--ログ操作クラス
     class Log extends DBAccess{
         //--コンストラクタ
-        function __construct(){
+        function __construct($dbname){
             //親クラスDBAのコンストラクタを呼び出す
-            parent::__construct();
+            parent::__construct($dbname);
         }
 
         //--ログに値を追加
         public function addValue($deviceID, $postTime, $temp, $humid){
             //--データを追加
-            $query = "INSERT INTO esp02dataTable (id, deviceID, postTime, temp, humid) VALUES (?, ?, ?, ?, ?)";
+            $query = "INSERT INTO logTable (id, deviceID, postTime, temp, humid) VALUES (?, ?, ?, ?, ?)";
             $paramarray = array("0", $deviceID, $postTime, $temp, $humid);
             $this -> queryExec($query, $paramarray);
         }
@@ -31,7 +31,7 @@
             }else if ($limit < 0){
                 $addQuery = "ORDER BY postTime ASC LIMIT " . abs($limit);
             }
-            $query = "SELECT * FROM esp02dataTable WHERE deviceID=? $addQuery";
+            $query = "SELECT * FROM logTable WHERE deviceID=? $addQuery";
             $paramarray = array($deviceID);
             $this -> queryExec($query, $paramarray);
 

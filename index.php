@@ -4,8 +4,8 @@
     */
 
     //--クラスのrequire
-    require "DBAccess.php"; //DB接続
-    require "Log.php"; //ログ操作
+    require "lib/DBAccess.php"; //DB接続
+    require "lib/Log.php"; //ログ操作
 
     //--サニタイズ
     $post=array();
@@ -21,7 +21,7 @@
 
     //--ログに追加
     $postTime = time();
-    $logger = new Log();
+    $logger = new Log("db/log.db");
     $logger -> addValue($post['deviceID'], $postTime, (float)$post['temp'], (float)$post['humid']);
 
     //--一応まともなレスポンスを返してあげないとね

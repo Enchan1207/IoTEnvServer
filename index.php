@@ -4,10 +4,12 @@
     */
 
     //--クラスのrequire
-    require "lib/DBAccess.php"; //DB接続
-    require "lib/Log.php"; //ログ操作
+    require "lib/DBAccess.php";
+    require "lib/Log.php";
+    require "lib/Auth.php";
 
     $logger = new Log("db/log.db");
+    $auth = new Auth("db/device.db");
 
     //--サニタイズ
     $post = array();
@@ -22,8 +24,7 @@
     }
 
     //--デバイスIDをデバイステーブルから検索し、正規リクエストか判定
-    $auth = $logger -> searchFrom($post['deviceID']);
-    if(!$auth){
+    if(!$auth -> searchFrom($post['deviceID'])){
         header('HTTP', true, 400);
         exit;
     }

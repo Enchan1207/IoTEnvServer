@@ -1,22 +1,23 @@
 <?php
-    /*
-     * ペアリングリクエストを検索 
+    /* 
+     * デバイス認証
     */
 
-    class Pairreq extends DBAccess{
+    class Auth extends DBAccess{
         //--コンストラクタ
         function __construct($dbname){
             //親クラスDBAのコンストラクタを呼び出す
             parent::__construct($dbname);
         }
 
-        //--紐づけられていて、ペアリングを要求しているユーザリストを返す
-        public function getPairRequiredUser($deviceID){
-            $query = "SELECT * FROM deviceTable WHERE deviceID=? AND reqstat=1";
+        //--認証テーブルから検索
+        public function searchFrom($deviceID){
+            $query = "SELECT * FROM deviceTable WHERE deviceID=?";
             $paramarray = array($deviceID);
             $this -> queryExec($query, $paramarray);
             $result = $this -> fetchArray();
-            return $result;
+
+            return count($result) == 1;
         }
     }
 ?>

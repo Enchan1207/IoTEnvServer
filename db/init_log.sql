@@ -6,3 +6,10 @@ create table logTable(
     temp FLOAT, 
     humid FLOAT
 );
+
+--デバイステーブル
+create table deviceTable(
+    id INT,
+    deviceID STRING,
+    isPaired INT
+);

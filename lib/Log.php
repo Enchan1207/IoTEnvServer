@@ -19,12 +19,12 @@
             $this -> queryExec($query, $paramarray);
         }
 
-        //--ログからパラメータをもとに値を取得
+        //--ログからパラメータをもとに値を取得 0ですべて、正数で最新、負数で最古のデータから指定個数
         public function getValue($userID, $deviceID, $limit){
             //--userIDとdeviceIDがペアリングされているかの確認も行いたい
             print $userID == $deviceID;
 
-            //--limitで指定された個数分取り出す 0ですべて、正数で最新、負数で最古のデータから指定個数分取得
+            //--limitで指定された個数分取り出す 
             $addQuery = "";
             if($limit > 0){
                 $addQuery = "ORDER BY postTime DESC LIMIT $limit";
@@ -41,7 +41,7 @@
 
         //--デバイステーブルから検索
         public function searchFrom($deviceID){
-            $query = "SELECT * FROM deviceTable WHERE deviceID=?";
+            $query = "SELECT * FROM deviceTable WHERE deviceID=? AND isPaired=1";
             $paramarray = array($deviceID);
             $this -> queryExec($query, $paramarray);
             $result = $this -> fetchArray();

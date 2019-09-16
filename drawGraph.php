@@ -1,66 +1,60 @@
 <?php
-    /*--
-     * サイズとデータ数を指定してグラフ生成
-    --*/
+    /*
+     * 測定データからグラフ生成
+    */
 
-    set_include_path("/home/r-techlab");
-    require 'lib/DBAccess.php';
-    require 'lib/Log.php';
-    require 'jpgraph/jpgraph.php';
-    require 'jpgraph/jpgraph_line.php';
+    require "/home/r-techlab/jpgraph/jpgraph.php";
+    require "/home/r-techlab/jpgraph/jpgraph_line.php";
+    require "/home/r-techlab/jpgraph/jpgraph_date.php";
+    require "lib/DBAccess.php";
+    require "lib/Auth.php";
+    require "lib/Log.php";
 
-    //--サニタイズ
+    //--グラフ作成に必要なデータをGETパラメータから受け取る
     $get = array();
     foreach( $_GET as $key => $value ) {
         $get[$key] = htmlspecialchars( $value, ENT_QUOTES);
     }
-
-    //--必要なデータがPOSTされていなければエラー
-    if(!isset($get['deviceID'], $get['size'], $get['limit'])){
-        header('HTTP', true, 400);
+    if(!isset($get['deviceID'], $get['length'])){
         exit;
     }
-
-    //--同時に10万個、画像幅4桁以上のリクエストは受け付けない
-    if(mb_strlen($get['limit']) > 5 || mb_strlen($get['size']) > 7){
-        header('HTTP', true, 416); //416 Range Not Satisfiable
-        exit;
-    }
-    $size_ = explode("x", $get['size']); //sizeは 400x300 のような形で送られることを想定
-    $limit = abs((int)$get['limit']);
-    //--サイズの指定が不正なら受け付けない
-    if(count($size_) != 2){
-        header('HTTP', true, 416); //416 Range Not Satisfiable
-        exit;
-    } 
-
-    //--グラフに必要な情報
-    $width = (int)$size_[0];
-    $height = (int)$size_[1];
     $deviceID = $get['deviceID'];
+    $length = $get['length'];
 
-    //--与えられた情報をもとにDBに接続し、描画対象のデータを取得
-    $logger = new Log("db/log.db");
-    $result = $logger -> getValue("", $deviceID, $limit);
+    //--リクエストしたデータがデバイステーブルにあるか調べる(不正アクセス回避)
+    $auth = new Auth("db/device.db");
+    if(!$auth -> searchFrom($deviceID)){
+        exit;
+    }
+
+    //--DBにつないで測定データを取得
+    $log = new Log("db/log.db");
+    $measureData = $log -> getValue($deviceID, $length);
+
+    //--取得したデータのうち、温湿度データおよびタイムスタンプのみ抽出して配列に格納
     $temp = array();
     $humid = array();
-    foreach ($result as $cell) {
-        array_push($temp, $cell['temp']);
-        array_push($humid, $cell['humid']);
+    $timestamp = array();
+    foreach ($measureData as $data) {
+        array_push($temp, $data['temp']);
+        array_push($humid, $data['humid']);
+        array_push($timestamp, $data['postTime'] + 9 * 3600); //時差を考慮
     }
 
-    //--グラフ描画
+    //--JpGraphをインスタンス化し、グラフを描画
+    $graph = new Graph(400, 200);
+    $graph -> SetScale("datlin", 25, 40);
+    $graph -> SetY2Scale("lin", 0, 100);
+    $graph -> SetMargin(50, 40, 20, 70); //lrud
 
-    //目盛とマージン、各軸タイトルの設定
-    $graph = new Graph($width, $height);
-    $graph -> SetScale("textlin");
-    $graph -> SetY2Scale("lin");
-    $graph -> SetMargin(50, 40, 20, 40); //lrud
+    $graph -> xaxis -> scale -> SetDateFormat("H:i");
+    $graph -> xaxis -> SetLabelAngle(80);
+    $graph -> xaxis -> SetColor("#010101");
 
     //線を引く
-    $lineplot_temp = new LinePlot($temp);
+    $lineplot_temp = new LinePlot($temp, $timestamp);
     $lineplot_temp -> SetWeight(2);
-    $lineplot_humid = new LinePlot($humid);
+    $lineplot_humid = new LinePlot($humid, $timestamp);
     $lineplot_humid -> SetWeight(2);
 
     $graph -> Add($lineplot_temp);

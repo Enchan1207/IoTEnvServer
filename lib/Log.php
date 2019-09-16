@@ -20,10 +20,7 @@
         }
 
         //--ログからパラメータをもとに値を取得 0ですべて、正数で最新、負数で最古のデータから指定個数
-        public function getValue($userID, $deviceID, $limit){
-            //--userIDとdeviceIDがペアリングされているかの確認も行いたい
-            print $userID == $deviceID;
-
+        public function getValue($deviceID, $limit){
             //--limitで指定された個数分取り出す 
             $addQuery = "";
             if($limit > 0){
